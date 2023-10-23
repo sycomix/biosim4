@@ -107,7 +107,7 @@ class TestConfig(SafeConfigParser):
         Please note that comments in the original configuration file are not preserved when writing the configuration back.
         """
         if space_around_delimiters:
-            d = " {} ".format(self._delimiters[0])
+            d = f" {self._delimiters[0]} "
         else:
             d = self._delimiters[0]
         if self._defaults:
@@ -119,7 +119,7 @@ class TestConfig(SafeConfigParser):
 
     def _write_section(self, fp, section_name, section_items, delimiter, sort):
         """ write a single section to the specified `fp'."""
-        fp.write("[{}]\n".format(section_name))
+        fp.write(f"[{section_name}]\n")
         if sort:
             section_items = sorted(section_items)
         for key, value in section_items:
@@ -128,7 +128,7 @@ class TestConfig(SafeConfigParser):
                 value = delimiter + str(value).replace('\n', '\n\t')
             else:
                 value = ""
-            fp.write("{}{}\n".format(key, value))
+            fp.write(f"{key}{value}\n")
         fp.write("\n")
 
 

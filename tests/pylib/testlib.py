@@ -26,9 +26,7 @@ def showTests(thisconfig):
     """ display all test sections in app config file
         """
     sections = thisconfig.sections()
-    tests = [s for s in sections if s != "internal"]
-    
-    return tests
+    return [s for s in sections if s != "internal"]
 
 
 def getTestSection(thisconfig, testname):
@@ -40,8 +38,8 @@ def getTestSection(thisconfig, testname):
     try:
         s = thisconfig[testname]
     except KeyError:
-        print("section '%s' does not exist" % testname)
-        # create it here or prefer user to deliberately add?
+        print(f"section '{testname}' does not exist")
+            # create it here or prefer user to deliberately add?
     except Exception as e:
         print("getTestSection() exception:\n", e)
 
@@ -115,11 +113,11 @@ def readStdConfigFile(param_src):
                 v = str.strip(keyval[1]) 
                 sectiondict[k] = v
         print("completed reading INI source file")
-        
+
         return (sectiondict, True)
 
     except Exception as e:
-        print("readStdConfigFile() exception: %s" % e)
+        print(f"readStdConfigFile() exception: {e}")
 
         return (sectiondict, False)
 
@@ -137,17 +135,17 @@ def loadStdParamsFromFile(thisconfig, testname, param_src):
         return False
     elif numparams == 0:
         print("file contains no parameters")
-    print("got %s parameters" % numparams)
+    print(f"got {numparams} parameters")
 
     section = getTestSection(thisconfig, testname)
     try:
         for k, v in sectiondict.items():
             #TODO check k against default ref params for validity
-            k = "param-" + k
+            k = f"param-{k}"
             section[k] = v
 
     except Exception as e:
-        print("loadStdParams() exception: %s" % e)
+        print(f"loadStdParams() exception: {e}")
 
 
 def writeStdTestFile(thisconfig, testname):
@@ -164,7 +162,7 @@ def writeStdTestFile(thisconfig, testname):
 
     try:
         # get the absolute path to 'tmp.ini'
-        pathstr = "./configs/%s" % TEMPinifile
+        pathstr = f"./configs/{TEMPinifile}"
         relpath = Path(pathstr)
         abspath = relpath.resolve()
         if checkFileExists(abspath, create=True):
@@ -173,10 +171,10 @@ def writeStdTestFile(thisconfig, testname):
                 for k, v in s.items():
                     if 'param' in k:
                         p = str.split(k, '-')
-                        ini.write(p[1] + "= " + v + "\n")
+                        ini.write(f"{p[1]}= {v}" + "\n")
 
     except Exception as e:
-        print("writeTestFile() exception: %s" % e)
+        print(f"writeTestFile() exception: {e}")
 
     
 def runTest():
@@ -185,13 +183,17 @@ def runTest():
 
     global TEMPinifile
 
-    relpath = "./tests/configs/%s" % TEMPinifile
-    shellcmd = "./bin/Release/biosim4 %s" % relpath
+    relpath = f"./tests/configs/{TEMPinifile}"
+    shellcmd = f"./bin/Release/biosim4 {relpath}"
     print("Running the simulation...\n")
-    # launch biosim4
-    process = subprocess.run(shellcmd, cwd='../', shell=True, capture_output=False, text=True, check=True)
-    
-    return process
+    return subprocess.run(
+        shellcmd,
+        cwd='../',
+        shell=True,
+        capture_output=False,
+        text=True,
+        check=True,
+    )
 
 
 def getResultParams(thisconfig, testname):
@@ -209,10 +211,7 @@ def getResultParams(thisconfig, testname):
             except:
                 v = float(v)
             resultdict[kk[1]] = v
-    if len(resultdict) == 7:
-        return (resultdict, True)
-    else:
-        return (resultdict, False)
+    return (resultdict, True) if len(resultdict) == 7 else (resultdict, False)
 
 def updateResultParams(thisconfig, testname, addrpdict):
 
@@ -226,12 +225,12 @@ def showResultParams(resultdict):
     """ can be called after getResultParams() to see the result params in resultdict returned by getResultParams() 
     returns True after displaying dict items
     """
-    # display params in dict 
+    # display params in dict
     if len(resultdict) > 0:
         count = 0
         print("\nDefined result params:\n")
         for k, v in resultdict.items():
-            print("%s= %s" % (k, v))
+            print(f"{k}= {v}")
             count += 1
         print("\n%i result param(s) missing" % (7 - count))
     else:
@@ -242,21 +241,20 @@ def readLog(results_log):
     """ Read the biosim4 log file and return the last line.
         return a dictionary of results
         """
-    logfile = '../logs/%s' % results_log
+    logfile = f'../logs/{results_log}'
     with open(logfile, 'r') as log:
         for line in log:
             pass
         last_line = line
     try:
         reslist = str.split(last_line)
-        resdict = {
-            'generation' : int(reslist[0]),
-            'survivors' : int(reslist[1]),
-            'diversity' : float(reslist[2]),
-            'genomeSize' : int(reslist[3]),
-            'kills' : int(reslist[4])
+        return {
+            'generation': int(reslist[0]),
+            'survivors': int(reslist[1]),
+            'diversity': float(reslist[2]),
+            'genomeSize': int(reslist[3]),
+            'kills': int(reslist[4]),
         }
-        return resdict
     except Exception as e:
         print("readLog() exception:\n%s" % e)
         return False
@@ -285,24 +283,25 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
         """ add key, val to global dictionary addrpdict
             if minmax == True then add 2 params """
         global addrpdict
-        paramlist = list()
+        paramlist = []
         if minmax:
             for suffix in ['-min', '-max']:
-                newkey = 'result-' + key + suffix
+                newkey = f'result-{key}{suffix}'
                 paramlist.append(newkey)
         else:
-            paramlist.append('result-' + key)
+            paramlist.append(f'result-{key}')
         action = "adding"
         if adjust:
             action = "updating"
         for k in paramlist:
-            print("%s param '%s = %s' to config" % (action, k, val))
+            print(f"{action} param '{k} = {val}' to config")
             addrpdict[k] = val
+
 
 
     resdict = readLog(results_log)
     if not resdict:
-        print("resultsAnalysis: Error in logfile %s" % results_log)
+        print(f"resultsAnalysis: Error in logfile {results_log}")
         print("unable to proceed with results analysis")
         exit(1)
 
@@ -342,7 +341,7 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
         # if --adjust was passed we will store params (& vals)
         # in this list to be confirmed for updating after
         # displaying all results
-        adjlist = list()
+        adjlist = []
         print("\n  parameter  \t  expected\t\t   actual\n")
         for k, v in resdict.items():
             # handle each actual result
@@ -368,8 +367,8 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
                 minmax = True
 
             if minmax:
-                minstr = rstr + '-min'
-                maxstr = rstr + '-max'
+                minstr = f'{rstr}-min'
+                maxstr = f'{rstr}-max'
                 if minstr in rp and maxstr in rp:
                     if v < rp[minstr] or v > rp[maxstr]:
                         success = "Fail"
@@ -381,11 +380,10 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
                             adjlist.append((minstr, v))
                         elif adjust and v > rp[maxstr]:
                             adjlist.append((maxstr, v))
-                            
+
                 else:
                     haverp = False
                     count += 1
-            # i.e. a regular equivalence case
             elif rstr in rp:
                 if v != rp[rstr]:
                     success = "Fail"
@@ -394,7 +392,6 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
                     if adjust:
                         # store for processing after display output
                         adjlist.append((rstr, v))
-            # fallthrough: rstr is not in dict rp
             else:
                 haverp = False
                 count += 1
@@ -412,11 +409,7 @@ def resultsAnalysis(thisconfig, testname, results_log, adjust=False):
                 showrp = "NA"
                 success = "Fail"
             else:
-                if minmax:
-                    showrp = "%s - %s" % (rp[minstr], rp[maxstr])
-                else: 
-                    showrp = rp[rstr]
-
+                showrp = "%s - %s" % (rp[minstr], rp[maxstr]) if minmax else rp[rstr]
             print("  %s%s %s%s %s%s %s" % (
                                             k, pad(k), 
                                             showrp, pad(showrp,24),

@@ -7,6 +7,7 @@
 """ This script runs a simulation test of a biosim4 configuration.
     """
 
+
 from sys import version_info, platform, argv, exit
 
 try:
@@ -32,11 +33,11 @@ _scriptpath = Path(__file__).resolve()    # full path
 _scriptname = _scriptpath.name  # filename incl .py
 _appname = _scriptpath.stem     # filename excl .py
 _projname = "biosim4"
-_projconfig = "%s.ini" % _projname
-_modname = "%s-mod.py" % _appname
-_uiname = "%s-ui" % _appname
-_libname = "%s-lib" % _appname
-_configfile = "%s.ini" % _appname
+_projconfig = f"{_projname}.ini"
+_modname = f"{_appname}-mod.py"
+_uiname = f"{_appname}-ui"
+_libname = f"{_appname}-lib"
+_configfile = f"{_appname}.ini"
 # temporary file used by this app to create test configurations:
 _temp_ini = "tmp.ini"
 _results_log = "epoch-log.txt"
@@ -112,8 +113,7 @@ After completing the simulation, the script will propose to add result parameter
 
 # check args passed from the command line,
 argp = argparse.ArgumentParser(
-    description = "Script for running %s" % _projname
-    + " simulation tests"
+    description=f"Script for running {_projname} simulation tests"
 )
 argp.add_argument(
     "-a",
@@ -267,7 +267,7 @@ try:
     defaultconfigfile = biosimpath.joinpath(_projconfig)
     # May not exist at this time:
     #logfile = ".logs/epoch-log.txt"
-    
+
     # biosim4 does not like an abspath to configfile:
     #tempini = configspath.joinpath(_temp_ini)
     # So, map temporary ini file relative to project root:
@@ -301,7 +301,7 @@ if args.load:
     try:
         thisconfig.add_section(thisname)
     except:
-        print("add_section exception: section named %s already exists" % thisname)
+        print(f"add_section exception: section named {thisname} already exists")
     try:
         testlib.loadStdParamsFromFile(thisconfig, thisname, param_src)
     except Exception as e:
@@ -318,9 +318,9 @@ if args.check:
 
     cdict = dict()
     print("\nchecking the test environment:\n")
-    print("OS platform: %s" % platform)
+    print(f"OS platform: {platform}")
     # build a dictionary
-    cdict["Python version"] = "%s.%s" % (version_info.major, version_info.minor)
+    cdict["Python version"] = f"{version_info.major}.{version_info.minor}"
     cdict["working dir"] = str(Path.cwd())
     cdict["app configpath"] = configspath
     cdict["app configfile"] = configfile
@@ -331,7 +331,7 @@ if args.check:
     for k, v in cdict.items():
         thislen = len(k) + len(str(v)) + 7
         if thislen > maxlen:
-            maxlen = thislen 
+            maxlen = thislen
     # now build output strings
     count = 0
     for k, v in cdict.items():
@@ -348,7 +348,7 @@ if args.check:
                 flag = "Fail"
 
         padding = maxlen - thislen
-        s = "%s: %s   %s  %s" % (k, v, '.' * padding, flag)
+        s = f"{k}: {v}   {'.' * padding}  {flag}"
         print(s)
         if flag != "Pass":
             count += 1
@@ -401,7 +401,7 @@ elif args.test:
         except Exception as e:
             print("Exception getting results params:\n%s" % e)
         exit(0)
-    
+
     # here we run the sim test
     try:
         testlib.TEMPinifile = _temp_ini
@@ -424,7 +424,7 @@ elif args.test:
         if args.verbose:
             print(proc)
             print("clock time: %s seconds" % timedelta(seconds=end_time - start_time))
-            print("CPU time: %s seconds" % (cpu_end_time - start_time))
+            print(f"CPU time: {cpu_end_time - start_time} seconds")
         #
         # run test analysis
         res = testlib.resultsAnalysis(thisconfig, args.test, _results_log, args.adjust)
@@ -446,5 +446,5 @@ else:
     print("\tpython3 %s --show\n" % _appname)
 
 
-print("%s done" % _appname)
+print(f"{_appname} done")
 exit(0)
